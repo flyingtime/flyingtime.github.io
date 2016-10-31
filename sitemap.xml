@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://flyingtime.github.io/2016/10/26/Golang%E6%90%AD%E5%BB%BA%E5%8D%95%E3%80%81%E5%8F%8C%E5%90%91%E8%87%AA%E8%AE%A4%E8%AF%81HTTPS%E6%9C%8D%E5%8A%A1%E5%99%A8/</loc>
+    
+    <lastmod>2016-10-31T02:20:47.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://flyingtime.github.io/2016/10/27/%E7%BF%BB%E8%AF%91-MySql-Connector-NET-for-NET-Core-1-0/</loc>
     
     <lastmod>2016-10-31T02:07:54.000Z</lastmod>
@@ -19,13 +26,6 @@
     <loc>http://flyingtime.github.io/2016/06/29/VS2015-Entity-Framework-6-x-Mysql%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98/</loc>
     
     <lastmod>2016-10-27T14:53:17.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://flyingtime.github.io/2016/10/26/Golang%E6%90%AD%E5%BB%BA%E5%8D%95%E3%80%81%E5%8F%8C%E5%90%91%E8%87%AA%E8%AE%A4%E8%AF%81HTTPS%E6%9C%8D%E5%8A%A1%E5%99%A8/</loc>
-    
-    <lastmod>2016-10-27T07:00:27.000Z</lastmod>
     
   </url>
   
