@@ -1,0 +1,621 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>HOME</title>
+  
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="http://flyingtime.github.io/"/>
+  <updated>2016-10-31T02:07:54.000Z</updated>
+  <id>http://flyingtime.github.io/</id>
+  
+  <author>
+    <name>Flyingtime</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>[翻译]MySql Connector NET for .NET Core 1.0</title>
+    <link href="http://flyingtime.github.io/2016/10/27/%E7%BF%BB%E8%AF%91-MySql-Connector-NET-for-NET-Core-1-0/"/>
+    <id>http://flyingtime.github.io/2016/10/27/翻译-MySql-Connector-NET-for-NET-Core-1-0/</id>
+    <published>2016-10-27T14:51:24.000Z</published>
+    <updated>2016-10-31T02:07:54.000Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><blockquote>
+<p>.Net Core发展迅猛，最近Entity Framework Core支持Mysql数据库了，现在可以在windows、osx、linux上使用.netcore连接mysql数据库了，英文原文地址:<a href="http://insidemysql.com/mysql-connector-net-for-net-core-1-0/" target="_blank" rel="external">MySql Connector NET for .NET Core 1.0</a></p>
+</blockquote>
+<h2 id="翻译"><a href="#翻译" class="headerlink" title="翻译"></a>翻译</h2><ul>
+<li><strong>.NET Core 和 MySQL Connector NET</strong><br>  这是激动人心的时刻！最近微软发布了.NET Core 1.0，它是一个跨平台实现.NET Framework的实现。.NET Core运行在Windows，Mac OS和Linux上并且是完全开源的！<br>  我们希望使用MySQL Connector NET的用户能够使用.NET Core，所以在过去几个月中我们努力工作，使我们的程序能够完全兼容.NET Core。由于.NET Core并没有完全取代传统的.NET Framework，我们将继续确保我们的程序与这两个框架兼容。<br>  随着这些令人兴奋的变化，我们将继续支持Entity Framwork 7.0和Entity Framework 1.0，包括最新的发布版。<br>  在本文中，我将解释如何安装和设置.NET Core以及如何创建一个简单的示例，连接Mysql数据库取回数据并显示到屏幕上。</li>
+<li><strong>Setup</strong><br>  .Net Core这个新框架的进一步信息，API，etc等，可以在这个网站中找到：<a href="https://www.microsoft.com/net/core" target="_blank" rel="external">https://www.microsoft.com/net/core</a>。</li>
+<li><strong>工具</strong><br>  SDK和DOTNET CLI适用于所有支持的平台（见网站就知道支持特定平台的列表）。Visual Studio Code（可在<a href="https://code.visualstudio.com/" target="_blank" rel="external">https://code.visualstudio.com/</a>）是一个新的，完全开源的编辑器，可运行在Windows，Mac和Linux，提供了一个很好的GUI环境进行编辑，编译，甚至调试项目。当安装Visual Studio代码，请确保安装了C＃插件，这将允许编译和调试C＃项目。</li>
+<li><strong>在Windows上安装</strong><br>  安装指南请参考这个网址 <a href="https://www.microsoft.com/net/core#windows" target="_blank" rel="external">https://www.microsoft.com/net/core#windows</a>。<br>  你可以只安装.NET Core 1.0 SDK并且使用Visual Studio Code进行编辑、编译、调试。.NET Core 1.0 SDK的下地址为<a href="https://go.microsoft.com/fwlink/?LinkID=809122." target="_blank" rel="external">https://go.microsoft.com/fwlink/?LinkID=809122</a>。<br>  当然你也可以在Windows系统上选择Visual Studio 2015。如果你不想购买Visual Studio 2015, 你可以使用Visual Studio 2015 Community Edition版本，可以在这里找到<a href="https://go.microsoft.com/fwlink/?LinkId=691978" target="_blank" rel="external">https://go.microsoft.com/fwlink/?LinkId=691978</a>。<br>  要使用.NET Core项目，你必须确保你使用的是Visual Studio 2015 Update3。可以在这里找到<a href="https://go.microsoft.com/fwlink/?LinkId=691129" target="_blank" rel="external">https://go.microsoft.com/fwlink/?LinkId=691129</a>。此外，还有一个单独的下载提供一些在Visual Studio 2015使用的“工具”，可以在这里找到<a href="https://go.microsoft.com/fwlink/?LinkID=824849" target="_blank" rel="external">https://go.microsoft.com/fwlink/?LinkID=824849</a>。</li>
+<li><strong>在Linux上安装</strong><br>  .NET Core 1.0是兼容多版本Linux变种的。我将解释如何在Ubuntu (14.04或16.04,15.04不支持)或者Linux Mint 17上安装.NET Core 1.0。所使用的指南在这里<a href="https://www.microsoft.com/net/core#ubuntu" target="_blank" rel="external">https://www.microsoft.com/net/core#ubuntu</a>。<br>  同时也支持其他的Liunx发行版, 遵循从指导<a href="https://www.microsoft.com/net/core" target="_blank" rel="external">.NET Core website</a>。<ul>
+<li>添加dotnet的apt-get源<br>  首先我们要添加apt-get的源。</li>
+<li>Ubuntu 14.04/Linux Mint 17<pre><code class="shell">sudo sh -c &apos;echo &quot;deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/dotnet-release/ trusty main&quot; &gt; /etc/apt/sources.list.d/dotnetdev.list&apos;
+sudo apt-key adv --keyserver apt-mo.trafficmanager.net --recv-keys 417A0893
+sudo apt-get update
+</code></pre>
+</li>
+<li>Ubuntu 16.04<pre><code class="shell">sudo sh -c &apos;echo &quot;deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/dotnet-release/ xenial main&quot; &gt; /etc/apt/sources.list.d/dotnetdev.list&apos;
+sudo apt-key adv --keyserver apt-mo.trafficmanager.net --recv-keys 417A0893
+sudo apt-get update
+</code></pre>
+</li>
+<li>.NET Core SDK<br>  如果你以前安装过.NET Core的任何版本需要运行<a href="https://github.com/dotnet/cli/blob/rel/1.0.0/scripts/obtain/uninstall/dotnet-uninstall-debian-packages.sh" target="_blank" rel="external">该脚本</a>以删除旧版本。在继续安装之前务必删除旧的版本。<br>  使用apt-get安装.NET Core<pre><code class="shell">sudo apt-get install dotnet-dev-1.0.0-preview2-003121
+</code></pre>
+</li>
+</ul>
+</li>
+<li><strong>在Mac OS上安装</strong><br>  使用指南在这里<a href="https://www.microsoft.com/net/core#macos" target="_blank" rel="external">https://www.microsoft.com/net/core#macos</a><br>  必须要安装最新版本的OpenSSL，最简单的方式是使用Homebrew安装。请使用下面的指南安装Homebrew<a href="http://brew.sh/" target="_blank" rel="external">here</a><br>  安装完Homebrew，请使用下面的命令<pre><code class="shell">brew update
+brew install openssl
+brew link --force openssl
+</code></pre>
+<ul>
+<li>.NET Core SDK (Mac OS)<br>  请在这里下载安装文件<a href="https://go.microsoft.com/fwlink/?LinkID=809124" target="_blank" rel="external">https://go.microsoft.com/fwlink/?LinkID=809124</a></li>
+</ul>
+</li>
+<li><p><strong>例子</strong><br>  现在我们的SDK已经安装完毕，我们可以继续创建一个示例项目。你可以使用Visual Studio 2015 或 Visual Studio Code。<br>  .NET Core有两种不同项目：Library和Console程序。到目前为止.NET Core还不支持GUI样式的程序。这个例子我们将会建立一个console程序。<br>  如果你使用Visual Studio 2015，创建一个“Console Application (.NET Core)”的新项目, 出入工程名并点击“OK”按钮。<br>  <img src="/res/Select-Kind-of-project.png" alt=""><br>  如果你是使用dotnet CL和VS Code创建项目，打开命令提示行,为你的项目创建一个新的文件夹, 进入文件夹创建项目</p>
+<pre><code class="shell">mkdir MyProject
+cd MyProject
+dotnet new
+</code></pre>
+<p>  项目创建完成之后,需要使用“restore”命令下载相关联的程序集<br>  使用Visual Studio 2015在项目上单击右键，在弹出的菜单中选择“Restore Packages”<br>  使用dotnet cli/VS Code</p>
+<pre><code class="shell">dotnet restore
+</code></pre>
+<p>  restore完成之后，使用Visual Studio 2015编译项目或使用dotnet cli运行“build”命令</p>
+<pre><code class="shell">dotnet build
+</code></pre>
+<p>  最后，执行这个例子，在Visual Studio 2015上使用F5键或在cli中运行“run”命令</p>
+<pre><code class="shell">dotnet run
+</code></pre>
+<p>  现在你应该看到输出了“Hello World!”<br>  我们现在已经有了一个十分基础的程序。现在让我们添加一些代码和一个.NET Core依赖的MySQL Connector引用。我们将继续使用dotnet cli还有VS Code完成本文的其他部分。<br>  打开在Visual Studio代码的目录。我们将会看到两个文件，Program.cs中和project.json。<br>  project.json是我们项目的配置文件，包含项目的一些属性如名字，版本，作者。此外，我们设置构建和打包的选项，建立框架目标还有他们其他的设置如依赖关系。<br>  我们刚才创建的项目有一个“project.json”文件，它看起来是这个样子</p>
+<pre><code class="json">{
+  <span class="attr">"version"</span>: <span class="string">"1.0.0-*"</span>,
+  <span class="attr">"buildOptions"</span>: {
+    <span class="attr">"debugType"</span>: <span class="string">"portable"</span>,
+    <span class="attr">"emitEntryPoint"</span>: <span class="literal">true</span>
+  },
+  <span class="attr">"dependencies"</span>: {},
+  <span class="attr">"frameworks"</span>: {
+    <span class="attr">"netcoreapp1.0"</span>: {
+      <span class="attr">"dependencies"</span>: {
+        <span class="attr">"Microsoft.NETCore.App"</span>: {
+          <span class="attr">"type"</span>: <span class="string">"platform"</span>,
+          <span class="attr">"version"</span>: <span class="string">"1.0.0"</span>
+        }
+      },
+      <span class="attr">"imports"</span>: <span class="string">"dnxcore50"</span>
+    }
+  }
+}
+</code></pre>
+<p>  为了与Mysql Server建立连接，我们需要添加一个.NET Core版的MySQL Connector引用。我们将在Microsoft.NETCore.App依赖之后添加这个依赖。请注意，我们还需要添加一个不依赖于目标的生成依赖(在“dependencies”分区后面的空白处，”frameworks”分区的前面)。这就是你需要做的。</p>
+<pre><code class="json">{
+  <span class="attr">"version"</span>: <span class="string">"1.0.0-*"</span>,
+  <span class="attr">"buildOptions"</span>: {
+    <span class="attr">"debugType"</span>: <span class="string">"portable"</span>,
+    <span class="attr">"emitEntryPoint"</span>: <span class="literal">true</span>
+  },
+  <span class="attr">"dependencies"</span>: {},
+  <span class="attr">"frameworks"</span>: {
+    <span class="attr">"netcoreapp1.0"</span>: {
+      <span class="attr">"dependencies"</span>: {
+        <span class="attr">"Microsoft.NETCore.App"</span>: {
+          <span class="attr">"type"</span>: <span class="string">"platform"</span>,
+          <span class="attr">"version"</span>: <span class="string">"1.0.0"</span>
+        },
+        <span class="attr">"MySql.Data.Core"</span>: <span class="string">"7.0.4-IR-191"</span>        
+      },
+      <span class="attr">"imports"</span>: <span class="string">"dnxcore50"</span>
+    }
+  }
+}
+</code></pre>
+<p>  确保我们已经有一个创建MySQL服务器并且在运行，并配置了Sakila样例数据库。如果你需要新建数据库，sql脚本可以在<a href="https://dev.mysql.com/doc/index-other.html" target="_blank" rel="external">这里</a>找到。<br>  当我们改变了依赖关系，我们需要重新restore一下，这样.NET Core会下载NuGet包，这样我们就可以使用它。</p>
+<pre><code class="shell">dotnet restore
+</code></pre>
+<p>  现在打开program.cs源文件，在命名空间部分添加using MySql.Data.MySqlClient并且添加新建和打开连接的代码。</p>
+<pre><code class="c#">using System;
+using MySql.Data.MySqlClient;
+
+namespace ConsoleApplication
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            MySqlConnection connection = new MySqlConnection
+            {
+                ConnectionString = &quot;server=&lt;ServerAddress&gt;;user id=&lt;User&gt;;password=&lt;Password&gt;;persistsecurityinfo=True;port=&lt;Port&gt;;database=sakila&quot;
+            };
+            connection.Open();
+        }
+    }
+}
+</code></pre>
+<p>  现在让我们添加从“Sakila”数据库或者“Category”表信息的相关代码</p>
+<pre><code class="c#">using System;
+using MySql.Data.MySqlClient;
+
+namespace ConsoleApplication
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            MySqlConnection connection = new MySqlConnection
+            {
+                ConnectionString = &quot;server=localhost;user id=root;password=;persistsecurityinfo=True;port=3305;database=sakila&quot;
+            };
+            connection.Open();
+            MySqlCommand command = new MySqlCommand(&quot;SELECT * FROM sakila.category;&quot;, connection);
+
+            using (MySqlDataReader reader =  command.ExecuteReader())
+            {
+                System.Console.WriteLine(&quot;Category Id\t\tName\t\tLast Update&quot;);
+                while (reader.Read())
+                {
+                string row = $&quot;{reader[&quot;category_id&quot;]}\t\t{reader[&quot;name&quot;]}\t\t{reader[&quot;last_update&quot;]}&quot;;
+                System.Console.WriteLine(row);
+                }
+            }
+
+            connection.Close();
+
+            System.Console.ReadKey();            
+        }
+    }
+}
+</code></pre>
+<p>  这就是我们需要从服务器获取数据的简单例子的全部内容。让我们构建并运行这个例子(如果你还没有执行restore操作，那么首先需要restore)</p>
+<pre><code class="shell">dotnet restore
+dotnet build
+dotnet run
+</code></pre>
+<p>  输出的内容如下:</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Category Id</th>
+<th>Name</th>
+<th>Last Update</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Action</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Animation</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Children</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Classics</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Comedy</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Documentary</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Drama</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Family</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Foreign</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+</tbody>
+</table>
+<p>希望这简单的示例可以帮助你。虽然这篇文章是在Windows上的，但是命令行步骤和代码在Linux和Mac也是一样的。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>谢谢大家观看！有任何疑问或建议请发送邮件联系我：<a href="&#x6d;&#x61;&#x69;&#108;&#116;&#111;&#x3a;&#102;&#x6c;&#121;&#105;&#110;&#103;&#x74;&#105;&#x6d;&#101;&#105;&#99;&#101;&#x40;&#49;&#x36;&#51;&#46;&#x63;&#x6f;&#109;">&#102;&#x6c;&#121;&#105;&#110;&#103;&#x74;&#105;&#x6d;&#101;&#105;&#99;&#101;&#x40;&#49;&#x36;&#51;&#46;&#x63;&#x6f;&#109;</a>。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;blockquote&gt;
+&lt;p&gt;.Net Core发展迅猛，最近Entity Framework Core支持Mysql数据库了，现在可以在win
+    
+    </summary>
+    
+    
+      <category term="c#" scheme="http://flyingtime.github.io/tags/c/"/>
+    
+      <category term=".netcore" scheme="http://flyingtime.github.io/tags/netcore/"/>
+    
+      <category term="mysql" scheme="http://flyingtime.github.io/tags/mysql/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>.Netcore Native测试</title>
+    <link href="http://flyingtime.github.io/2016/10/27/Netcore-Native%E6%B5%8B%E8%AF%95/"/>
+    <id>http://flyingtime.github.io/2016/10/27/Netcore-Native测试/</id>
+    <published>2016-10-27T05:45:19.000Z</published>
+    <updated>2016-10-31T00:48:00.000Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><blockquote>
+<p>.Netcore的两种部署模式:Framework-dependent deployments (FDD);Self-contained deployments (SCD);FDD感觉跟原来的托管程序是类似的，必须运行在.netcore的环境中，而SCD则是一个打包了所需运行环境的模式。比较感兴趣的是SCD模式，但是发现一个普通的hello world加上运行环境有45M大小。。。这两种模式都是在托管代码下运行的，那么有没有一种原生的编译方式呢？今天我们就折腾一下.netcore的native编译模式。</p>
+</blockquote>
+<h2 id="具体步骤"><a href="#具体步骤" class="headerlink" title="具体步骤"></a>具体步骤</h2><ol>
+<li>本机系统环境<br><img src="/res/my_system.png" alt=""></li>
+<li>安装所需环境<ol>
+<li>安装openssl<pre><code class="shell">brew upate
+brew install openssl
+brew link --force openssl
+</code></pre>
+</li>
+<li>安装cmake，下载最新版本的就可以 </li>
+</ol>
+</li>
+<li>构建ILCompiler<pre><code class="shell">git clone https://github.com/dotnet/corert
+cd corert/
+./build.sh clean Release
+</code></pre>
+</li>
+<li>下载.NET Core SDK<ol>
+<li>打开 <a href="https://github.com/dotnet/cli/" target="_blank" rel="external">https://github.com/dotnet/cli/</a></li>
+<li>找到 <img src="/res/cli_list.png" alt="">,注意下载标红的那栏</li>
+<li>安装下载的.NET Core SDK工具</li>
+</ol>
+</li>
+<li>创建新的测试程序<pre><code class="shell">dotnet new -t console
+</code></pre>
+</li>
+<li>在工程文件夹添加 NuGet.Config，文件内容如下：<pre><code class="xml"> &lt;?xml version="1.0" encoding="utf-8"?&gt;
+<span class="tag">&lt;<span class="name">configuration</span>&gt;</span>
+<span class="tag">&lt;<span class="name">packageSources</span>&gt;</span>
+ <span class="comment">&lt;!--To inherit the global NuGet package sources remove the &lt;clear/&gt; line below --&gt;</span>
+ <span class="tag">&lt;<span class="name">clear</span> /&gt;</span>
+ <span class="tag">&lt;<span class="name">add</span> <span class="attr">key</span>=<span class="string">"dotnet-core"</span> <span class="attr">value</span>=<span class="string">"https://dotnet.myget.org/F/dotnet-core/api/v3/index.json"</span> /&gt;</span>
+ <span class="tag">&lt;<span class="name">add</span> <span class="attr">key</span>=<span class="string">"cli-deps"</span> <span class="attr">value</span>=<span class="string">"https://dotnet.myget.org/F/cli-deps/api/v3/index.json"</span> /&gt;</span>
+ <span class="tag">&lt;<span class="name">add</span> <span class="attr">key</span>=<span class="string">"xunit"</span> <span class="attr">value</span>=<span class="string">"https://www.myget.org/F/xunit/api/v3/index.json"</span> /&gt;</span>
+ <span class="tag">&lt;<span class="name">add</span> <span class="attr">key</span>=<span class="string">"api.nuget.org"</span> <span class="attr">value</span>=<span class="string">"https://api.nuget.org/v3/index.json"</span> /&gt;</span>
+<span class="tag">&lt;/<span class="name">packageSources</span>&gt;</span>
+<span class="tag">&lt;/<span class="name">configuration</span>&gt;</span>
+</code></pre>
+</li>
+<li>添加环境变量<br> 在~/.bash_profile添加如下内容(请查看自己corert的项目地址)：<pre><code class="shell">export IlcPath=&quot;/Users/mac/Documents/corert/bin/Product/OSX.x64.Release/packaging/publish1&quot;
+</code></pre>
+</li>
+<li>执行restore<pre><code class="shell">dotnet restore3
+</code></pre>
+</li>
+<li>在*.csproj最后添加<pre><code class="xml"><span class="tag">&lt;<span class="name">Import</span> <span class="attr">Project</span>=<span class="string">"$(IlcPath)\Microsoft.NETCore.Native.targets"</span> /&gt;</span>
+</code></pre>
+</li>
+<li>构建Natvie的测试程序<ol>
+<li>使用RyuJIT<pre><code class="shell">dotnet build3 /t:LinkNative /p:IlcPath=&lt;repo_root&gt;\bin\Product\OSX.x64.Release\packaging\publish1
+</code></pre>
+ 构建成功：<br> <img src="/res/netnative.png" alt=""></li>
+<li>使用CPP代码生成器<pre><code class="shell">dotnet build3 /t:LinkNative /p:IlcPath=&lt;repo_root&gt;\bin\Product\OSX.x64.Release\packaging\publish1 /p:NativeCodeGen=cpp
+</code></pre>
+<blockquote>
+<p><strong>注意</strong> 在Mac系统下最后的/p:Additional Compiler Flags=/MTd是需要去掉的</p>
+</blockquote>
+</li>
+<li>第一种方式生成的程序为5.3M，而第二种构建的方式生成的程序为3.2M。</li>
+</ol>
+</li>
+</ol>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>.Net Core是一个很有前途的项目，M$再次用强大的实力让我折服，以后可以用C#写原生的代码了，native编译不再是梦想，C#的开发效率，C++的运行效率，开发周期跟运行时间的完美平衡，祝愿.Net Core项目更加强大，谢谢观看！</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://docs.microsoft.com/en-us/dotnet/articles/core/deploying/" target="_blank" rel="external">.Netcore 程序部署</a><br><a href="https://blogs.msdn.microsoft.com/msdntaiwan/2016/09/20/selfcontainednetcoreapplications/" target="_blank" rel="external">獨立的 .NET Core 應用程式</a><br><a href="https://github.com/dotnet/corert/blob/master/Documentation/prerequisites-for-building.md" target="_blank" rel="external">构建ILCompiler所需环境</a><br><a href="https://github.com/dotnet/corert/blob/master/Documentation/how-to-build-and-run-ilcompiler-in-console-shell-prompt.md" target="_blank" rel="external">构建ILCompiler程序</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;blockquote&gt;
+&lt;p&gt;.Netcore的两种部署模式:Framework-dependent deployments (FDD);Sel
+    
+    </summary>
+    
+      <category term="c#" scheme="http://flyingtime.github.io/categories/c/"/>
+    
+    
+      <category term="c#" scheme="http://flyingtime.github.io/tags/c/"/>
+    
+      <category term=".netcore" scheme="http://flyingtime.github.io/tags/netcore/"/>
+    
+      <category term="native" scheme="http://flyingtime.github.io/tags/native/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Golang搭建单、双向自认证HTTPS服务器</title>
+    <link href="http://flyingtime.github.io/2016/10/26/Golang%E6%90%AD%E5%BB%BA%E5%8D%95%E3%80%81%E5%8F%8C%E5%90%91%E8%87%AA%E8%AE%A4%E8%AF%81HTTPS%E6%9C%8D%E5%8A%A1%E5%99%A8/"/>
+    <id>http://flyingtime.github.io/2016/10/26/Golang搭建单、双向自认证HTTPS服务器/</id>
+    <published>2016-10-26T01:25:51.000Z</published>
+    <updated>2016-10-27T07:00:27.000Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><blockquote>
+<p>2015年双11期间淘宝、天猫实现了全站式https安全传输，web安全问题已经成了人们关注的话题，那什么是https呢？如何实现单、双向自认证https服务器呢？接下来我们将一一介绍。</p>
+</blockquote>
+<h2 id="一、HTTPS相关概念已经认证流程"><a href="#一、HTTPS相关概念已经认证流程" class="headerlink" title="一、HTTPS相关概念已经认证流程"></a>一、HTTPS相关概念已经认证流程</h2><h4 id="基本概念："><a href="#基本概念：" class="headerlink" title="基本概念："></a>基本概念：</h4><p><a href="http://baike.baidu.com/link?url=XuEFqp8HTAIWBO12QMzj54K1iIBGPL6VJGPEn85nyCirdG8LE104hMYvOeDgfucyMf3gu1zPLap3i0BKb-SKHa" target="_blank" rel="external"><strong>HTTPS</strong></a>（全称：Hyper Text Transfer Protocol over Secure Socket Layer），是以安全为目标的HTTP通道，简单讲是HTTP的安全版。即HTTP下加入SSL层，HTTPS的安全基础是SSL，因此加密的详细内容就需要SSL。 它是一个URI scheme（抽象标识符体系），句法类同http:体系。用于安全的HTTP数据传输。https:URL表明它使用了HTTP，但HTTPS存在不同于HTTP的默认端口及一个加密/身份验证层（在HTTP与TCP之间）。这个系统的最初研发由网景公司(Netscape)进行，并内置于其浏览器Netscape Navigator中，提供了身份验证与加密通讯方法。现在它被广泛用于万维网上安全敏感的通讯，例如交易支付方面。关于https详细介绍请见：<a href="http://studygolang.com/articles/2984" target="_blank" rel="external">大型网站的HTTPS实践</a>。</p>
+<p><strong>SSL</strong>(Secure Socket Layer)：是Netscape公司设计的主要用于WEB的安全传输协议。从名字就可以看出它在https协议栈中负责实现上面提到的加密层。</p>
+<p><strong>数字证书</strong>：一种文件的名称，好比一个机构或人的签名，能够证明这个机构或人的真实性。其中包含的信息，用于实现上述功能。</p>
+<p><strong>加密和认证</strong>：加密是指通信双方为了防止铭感信息在信道上被第三方窃听而泄漏，将明文通过加密变成密文，如果第三方无法解密的话，就算他获得密文也无能为力；认证是指通信双方为了确认对方是值得信任的消息发送或接受方，而不是使用假身份的非法者，采取的确认身份的方式。只有同时进行了加密和认证才能保证通信的安全，因此在SSL通信协议中这两者都被应。早期一般是用对称加密算法，现在一般都是不对称加密，最常见的算法就是RSA。</p>
+<p><strong>消息摘要</strong>：这个技术主要是为了避免消息被篡改。消息摘要是把一段信息，通过某种算法，得出一串字符串。这个字符串就是消息的摘要。如果消息被篡改（发生了变化），那么摘要也一定会发生变化（如果2个不同的消息生成的摘要是一样的，那么这就叫发生了碰撞）。消息摘要的算法主要有MD5和SHA，在证书领域，一般都是用SHA（安全哈希算法）。</p>
+<p>数字证书、加密和认证、消息摘要三个技术结合起来，就是在HTTPS中广泛应用的证书（certificate），证书本身携带了加密/解密的信息，并且可以标识自己的身份，也自带消息摘要。</p>
+<h4 id="HTTPS认证过程："><a href="#HTTPS认证过程：" class="headerlink" title="HTTPS认证过程："></a>HTTPS认证过程：</h4><pre><code>1. 浏览器发送一个连接请求给安全服务器。
+2. 服务器将自己的证书，以及同证书相关的信息发送给客户浏览器。
+3. 客户浏览器检查服务器送过来的证书是否是由自己信赖的 CA 中心所签发的。如果是，就继续执行协议；如果不是，客户浏览器就给客户一个警告消息：警告客户这个证书不是可以信赖的，询问客户是否需要继续。
+4. 接着客户浏览器比较证书里的消息，例如域名和公钥，与服务器刚刚发送的相关消息是否一致，如果是一致的，客户浏览器认可这个服务器的合法身份。
+5. 服务器要求客户发送客户自己的证书。收到后，服务器验证客户的证书，如果没有通过验证，拒绝连接；如果通过验证，服务器获得用户的公钥。
+6. 客户浏览器告诉服务器自己所能够支持的通讯对称密码方案。
+7. 服务器从客户发送过来的密码方案中，选择一种加密程度最高的密码方案，用客户的公钥加过密后通知浏览器。
+8. 浏览器针对这个密码方案，选择一个通话密钥，接着用服务器的公钥加过密后发送给服务器。
+9. 服务器接收到浏览器送过来的消息，用自己的私钥解密，获得通话密钥。
+10. 服务器、浏览器接下来的通讯都是用对称密码方案，对称密钥是加过密的。
+</code></pre><p>上面所述的是双向认证 SSL 协议的具体通讯过程，这种情况要求服务器和用户双方都有证书。单向认证 SSL 协议不需要客户拥有 CA 证书，具体的过程相对于上面的步骤，只需将服务器端验证客户证书的过程去掉，以及在协商对称密码方案，对称通话密钥时，服务器发送给客户的是没有加过密的 （这并不影响 SSL 过程的安全性）密码方案。这样，双方具体的通讯内容，就是加过密的数据，如果有第三方攻击，获得的只是加密的数据，第三方要获得有用的信息，就需要对加密 的数据进行解密，这时候的安全就依赖于密码方案的安全。而幸运的是，目前所用的密码方案，只要通讯密钥长度足够的长，就足够的安全。这也是我们强调要求使用128 位加密通讯的原因。</p>
+<h2 id="二、自认证根证书"><a href="#二、自认证根证书" class="headerlink" title="二、自认证根证书"></a>二、自认证根证书</h2><ol>
+<li><p>创建根证书密钥文件(自己做CA)root.key：</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$openssl genrsa -des3 -out root.key 2048</div></pre></td></tr></table></figure>
+<p> 需要输入两次私钥密码<br> <img src="/res/1.png" alt=""></p>
+</li>
+<li><p>创建根证书的申请文件root.csr：</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$openssl req -new -key root.key -out root.csr</div></pre></td></tr></table></figure>
+<p> 输入root.key的密码<br> <img src="/res/2.png" alt=""></p>
+</li>
+<li><p>创建根证书root.crt：</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$openssl x509 -req -days 3650 -sha256 -extensions v3_ca -signkey root.key -in root.csr -out root.crt</div></pre></td></tr></table></figure>
+<p> 生成根证书<br> <img src="/res/3.png" alt=""></p>
+</li>
+</ol>
+<h2 id="三、SSL单向认证"><a href="#三、SSL单向认证" class="headerlink" title="三、SSL单向认证"></a>三、SSL单向认证</h2><ol>
+<li><p>创建服务器证书秘钥</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$openssl genrsa –des3 -out server.key 2048</div></pre></td></tr></table></figure>
+<p> 需要输入两次私钥密码<br> <img src="/res/4.png" alt=""></p>
+</li>
+<li><p>去除key口令</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$openssl rsa -in server.key -out server.key</div></pre></td></tr></table></figure>
+<p> 需要输入私钥密码<br> <img src="/res/5.png" alt=""></p>
+</li>
+<li><p>创建服务器证书申请文件server.csr</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$openssl req -new -key server.key -out server.csr</div></pre></td></tr></table></figure>
+<p> “Common Name”最好跟网站的域名一致<br> <img src="/res/6.png" alt=""></p>
+</li>
+<li><p>创建服务器证书server.crt</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$openssl x509 -req -days 365 -sha256 -extensions v3_req -CA root.crt -CAkey root.key -CAcreateserial -in server.csr -out server.crt</div></pre></td></tr></table></figure>
+<p> 需要输入根私钥密码<br> <img src="/res/7.png" alt="">                                          </p>
+</li>
+<li><p>客户端导入根证书并添加到“信任的根服务站点”<br> <img src="/res/8.png" alt=""><br> <img src="/res/9.png" alt=""><br> <img src="/res/10.png" alt=""><br> <img src="/res/11.png" alt=""><br> <img src="/res/12.png" alt=""><br> <img src="/res/13.png" alt=""><br> <img src="/res/14.png" alt=""><br> <img src="/res/15.png" alt="">   </p>
+</li>
+<li><p>golang实现简单的https服务器</p>
+ <figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> main</div><div class="line"></div><div class="line"><span class="keyword">import</span> (</div><div class="line">	<span class="string">"io"</span></div><div class="line">	<span class="string">"log"</span></div><div class="line">	<span class="string">"net/http"</span></div><div class="line">)</div><div class="line">	</div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">handler</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</div><div class="line">	io.WriteString(w, <span class="string">"golang https server"</span>)</div><div class="line">&#125;</div><div class="line">	</div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	http.HandleFunc(<span class="string">"/"</span>, handler)</div><div class="line">	<span class="keyword">if</span> err := http.ListenAndServeTLS(<span class="string">":8080"</span>, <span class="string">"server.crt"</span>, <span class="string">"server.key"</span>, <span class="literal">nil</span>); err != <span class="literal">nil</span> &#123;</div><div class="line">		log.Fatal(<span class="string">"ListenAndServe:"</span>, err)</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p> 在浏览器中测试<br> <img src="/res/16.png" alt=""></p>
+</li>
+</ol>
+<h2 id="四、SSL双向认证"><a href="#四、SSL双向认证" class="headerlink" title="四、SSL双向认证"></a>四、SSL双向认证</h2><p>在单向认证的基础上添加客户端证书并在golang服务器源码上添加客户端认证相关代码</p>
+<ol>
+<li><p>创建客户端证书私钥</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$openssl genrsa -des3 -out client.key 2048</div></pre></td></tr></table></figure>
+<p> 需要输入两次私钥密码<br> <img src="/res/17.png" alt=""></p>
+</li>
+<li><p>去除key口令</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$openssl rsa -in client.key -out client.key</div></pre></td></tr></table></figure>
+<p> 需要输入私钥密码<br> <img src="/res/18.png" alt=""></p>
+</li>
+<li><p>创建客户端证书申请文件client.csr</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$openssl req -new -key client.key -out client.csr</div></pre></td></tr></table></figure>
+<p> <img src="/res/19.png" alt="">                                      </p>
+</li>
+<li><p>创建客户端证书文件client.crt</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$openssl x509 -req -days 365 -sha256 -extensions v3_req -CA root.crt -CAkey root.key -CAcreateserial -in client.csr -out client.crt</div></pre></td></tr></table></figure>
+<p> <img src="/res/20.png" alt=""></p>
+</li>
+<li><p>将客户端证书文件client.crt和客户端证书密钥文件client.key合并成客户端证书安装包client.pfx</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$openssl pkcs12 -export -in client.crt -inkey client.key -out client.pfx</div></pre></td></tr></table></figure>
+<p> 设置客户端安装时的密码<br> <img src="/res/23.png" alt=""></p>
+</li>
+<li><p>添加客户端证书<br> 参见服务器端添加证书，客户端证书添加到“个人”里面就可以<br> <img src="/res/21.png" alt=""></p>
+</li>
+<li><p>修改服务器代码</p>
+<pre><code class="Go"><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"crypto/tls"</span>
+    <span class="string">"crypto/x509"</span>
+    <span class="string">"io"</span>
+    <span class="string">"io/ioutil"</span>
+    <span class="string">"log"</span>
+    <span class="string">"net/http"</span>
+)
+
+<span class="keyword">type</span> httpsHandler <span class="keyword">struct</span> {
+}
+
+<span class="function"><span class="keyword">func</span> <span class="params">(*httpsHandler)</span> <span class="title">ServeHTTP</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> {
+    io.WriteString(w, <span class="string">"golang https server!!!"</span>)
+}
+
+<span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> {
+    pool := x509.NewCertPool()
+    caCertPath := <span class="string">"root.crt"</span>
+
+    caCrt, err := ioutil.ReadFile(caCertPath)
+    <span class="keyword">if</span> err != <span class="literal">nil</span> {
+        log.Fatal(<span class="string">"ReadFile err:"</span>, err)
+        <span class="keyword">return</span>
+    }
+    pool.AppendCertsFromPEM(caCrt)
+
+    s := &amp;http.Server{
+        Addr:    <span class="string">":8080"</span>,
+        Handler: &amp;httpsHandler{},
+        TLSConfig: &amp;tls.Config{
+            ClientCAs:  pool,
+            ClientAuth: tls.RequireAndVerifyClientCert,
+        },
+    }
+
+    <span class="keyword">if</span> err = s.ListenAndServeTLS(<span class="string">"server.crt"</span>, <span class="string">"server.key"</span>); err != <span class="literal">nil</span> {
+        log.Fatal(<span class="string">"ListenAndServeTLS err:"</span>, err)
+    }
+}
+</code></pre>
+</li>
+<li><p>使用golang访问https服务器</p>
+<pre><code class="Go"><span class="keyword">package</span> main
+
+<span class="keyword">import</span> (
+    <span class="string">"crypto/tls"</span>
+    <span class="string">"crypto/x509"</span>
+    <span class="string">"io/ioutil"</span>
+    <span class="string">"log"</span>
+    <span class="string">"net/http"</span>
+)
+
+<span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> {
+    pool := x509.NewCertPool()
+    caCertPath := <span class="string">"root.crt"</span>
+
+    caCrt, err := ioutil.ReadFile(caCertPath)
+    <span class="keyword">if</span> err != <span class="literal">nil</span> {
+        log.Fatal(<span class="string">"ReadFile err:"</span>, err)
+        <span class="keyword">return</span>
+    }
+    pool.AppendCertsFromPEM(caCrt)
+
+    cliCrt, err := tls.LoadX509KeyPair(<span class="string">"client.crt"</span>, <span class="string">"client.key"</span>)
+    <span class="keyword">if</span> err != <span class="literal">nil</span> {
+        log.Fatal(<span class="string">"LoadX509KeyPair err:"</span>, err)
+        <span class="keyword">return</span>
+    }
+
+    tr := &amp;http.Transport{
+        TLSClientConfig: &amp;tls.Config{
+            RootCAs:      pool,
+            Certificates: []tls.Certificate{cliCrt},
+        },
+    }
+    client := &amp;http.Client{Transport: tr}
+    resp, err := client.Get(<span class="string">"https://localhost:8080"</span>)
+    <span class="keyword">if</span> err != <span class="literal">nil</span> {
+        log.Fatal(<span class="string">"client error:"</span>, err)
+        <span class="keyword">return</span>
+    }
+    <span class="keyword">defer</span> resp.Body.Close()
+    body, err := ioutil.ReadAll(resp.Body)
+    log.Println(<span class="keyword">string</span>(body))
+}
+</code></pre>
+<p>在浏览器中测试<br> <img src="/res/22.png" alt=""></p>
+</li>
+</ol>
+<h3 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h3><p>希望通过这次实例能让大家更好的理解、应用https，谢谢观看。<br>相关代码:<a href="https://github.com/flyingtime/go-https" target="_blank" rel="external">go-https</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h3 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h3&gt;&lt;blockquote&gt;
+&lt;p&gt;2015年双11期间淘宝、天猫实现了全站式https安全传输，web安全问题已经成了人们关注的话题，那什么是htt
+    
+    </summary>
+    
+      <category term="golang" scheme="http://flyingtime.github.io/categories/golang/"/>
+    
+    
+      <category term="golang" scheme="http://flyingtime.github.io/tags/golang/"/>
+    
+      <category term="https" scheme="http://flyingtime.github.io/tags/https/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>VS2015 Entity Framework 6.x Mysql的一些问题</title>
+    <link href="http://flyingtime.github.io/2016/06/29/VS2015-Entity-Framework-6-x-Mysql%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98/"/>
+    <id>http://flyingtime.github.io/2016/06/29/VS2015-Entity-Framework-6-x-Mysql的一些问题/</id>
+    <published>2016-06-29T10:50:36.000Z</published>
+    <updated>2016-10-27T14:53:17.000Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><blockquote>
+<p>在VS 2015中使用Entity Framework 6.x时，连接Mysql数据库常会出现一些问题，在这里记录了一些自己在项目中遇到的问题，希望大家可以参考一下，在以后的项目中避免在类似的问题中花费过多的时间</p>
+</blockquote>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><ul>
+<li>如果自己在系统中安装了mysql connector，并且自己在项目中使用Nuget安装了新的Entity FrameWork for Mysql，当Mysql.Data.Core的版本跟mysql connector中的版本不一致的话会出现一些莫名其妙的问题。可以在直接删除mysql connector工具或者在项目引用中添加mysql connector的中Mysql.Data.dll、Mysql.Web.dll、Mysql.Data.Entity.EF6.dll</li>
+<li>修改web.config或者app.config<br>删除：<pre><code class="xml"><span class="tag">&lt;<span class="name">entityFramework</span>&gt;</span>
+  <span class="tag">&lt;<span class="name">defaultConnectionFactory</span> <span class="attr">type</span>=<span class="string">"System.Data.Entity.Infrastructure.LocalDbConnectionFactory, EntityFramework"</span>&gt;</span>
+    <span class="tag">&lt;<span class="name">parameters</span>&gt;</span>
+      <span class="tag">&lt;<span class="name">parameter</span> <span class="attr">value</span>=<span class="string">"v11.0"</span> /&gt;</span>
+    <span class="tag">&lt;/<span class="name">parameters</span>&gt;</span>
+  <span class="tag">&lt;/<span class="name">defaultConnectionFactory</span>&gt;</span>
+  <span class="tag">&lt;<span class="name">providers</span>&gt;</span>
+    <span class="tag">&lt;<span class="name">provider</span> <span class="attr">invariantName</span>=<span class="string">"System.Data.SqlClient"</span> <span class="attr">type</span>=<span class="string">"System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer"</span> /&gt;</span>
+  <span class="tag">&lt;/<span class="name">providers</span>&gt;</span>
+<span class="tag">&lt;/<span class="name">entityFramework</span>&gt;</span>
+</code></pre>
+添加：<pre><code class="xml"><span class="tag">&lt;<span class="name">entityFramework</span>&gt;</span>
+  <span class="tag">&lt;<span class="name">defaultConnectionFactory</span> <span class="attr">type</span>=<span class="string">"MySql.Data.Entity.MySqlConnectionFactory, MySql.Data.Entity.EF6"</span> /&gt;</span>
+  <span class="tag">&lt;<span class="name">providers</span>&gt;</span>
+    <span class="tag">&lt;<span class="name">provider</span> <span class="attr">invariantName</span>=<span class="string">"MySql.Data.MySqlClient"</span> <span class="attr">type</span>=<span class="string">"MySql.Data.MySqlClient.MySqlProviderServices, MySql.Data.Entity.EF6"</span> /&gt;</span>
+  <span class="tag">&lt;/<span class="name">providers</span>&gt;</span>
+<span class="tag">&lt;/<span class="name">entityFramework</span>&gt;</span>
+</code></pre>
+</li>
+<li><p>连接Mysql出现的一个错误：<br><img src="/res/mysql_error.png" alt=""><br>这其实是个bug,mysql的bug… …解决方法很简单,要把mysql的一个优化项给关了.<br>详见：<a href="http://stackoverflow.com/questions/33575109/mysql-entity-the-value-for-column-isprimarykey-in-table-tabledetails-is" target="_blank" rel="external">http://stackoverflow.com/questions/33575109/mysql-entity-the-value-for-column-isprimarykey-in-table-tabledetails-is</a></p>
+<blockquote>
+<p>Open Services (services.msc) and restart MySQL57 service.<br>Execute the following commands in MySQL. use database_name;<br>Set global optimizer_switch=’derived_merge=off’;<br>Set optimizer_switch=’derived_merge=off’.</p>
+</blockquote>
+</li>
+<li><p>在Add-Migration 的时候出现“未为提供程序“MySql.Data.MySqlClient”找到任何 MigrationSqlGenerator。请在目标迁移配置类中使用 SetSqlGenerator 方法以注册其他 SQL 生成器”,解决办法：在DbContext类上面添加特性:</p>
+<pre><code class="c#">[DbConfigurationType(typeof(MySql.Data.Entity.MySqlEFConfiguration))]
+public class XXDbContext : DbContext
+{ 
+}
+</code></pre>
+</li>
+<li>当在XXDbContext中添加特性：[DbConfigurationType(typeof(MySql.Data.Entity.MySqlEFConfiguration))]，在创建新的controller时，会出现如下错误：<br><img src="/res/mysql_migration_error.png" alt=""><br>解决办法：<ol>
+<li>在创建controller时注释掉[DbConfigurationType(typeof(MySql.Data.Entity.MySqlEFConfiguration))]</li>
+<li>在Add-Migration时取消注释[DbConfigurationType(typeof(MySql.Data.Entity.MySqlEFConfiguration))]</li>
+</ol>
+</li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="http://stackoverflow.com/questions/21867662/ef6-and-mysql-generate-database-from-model" target="_blank" rel="external">http://stackoverflow.com/questions/21867662/ef6-and-mysql-generate-database-from-model</a><br><a href="http://bbs.kechuang.org/f/373/79769" target="_blank" rel="external">http://bbs.kechuang.org/f/373/79769</a><br><a href="http://forums.mysql.com/read.php?174,601264,601264" target="_blank" rel="external">http://forums.mysql.com/read.php?174,601264,601264</a><br><a href="http://www.cnblogs.com/buyixiaohan/p/4551279.html" target="_blank" rel="external">http://www.cnblogs.com/buyixiaohan/p/4551279.html</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;blockquote&gt;
+&lt;p&gt;在VS 2015中使用Entity Framework 6.x时，连接Mysql数据库常会出现一些问题，在这里记录
+    
+    </summary>
+    
+      <category term="c#" scheme="http://flyingtime.github.io/categories/c/"/>
+    
+    
+      <category term="c#" scheme="http://flyingtime.github.io/tags/c/"/>
+    
+      <category term="asp.net" scheme="http://flyingtime.github.io/tags/asp-net/"/>
+    
+      <category term="entity framework" scheme="http://flyingtime.github.io/tags/entity-framework/"/>
+    
+      <category term="mysql" scheme="http://flyingtime.github.io/tags/mysql/"/>
+    
+  </entry>
+  
+</feed>

@@ -1,0 +1,225 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Flyingtime"><link rel="icon" href="/hexo.png"><title>HOME</title><meta name="description"><link rel="alternate" type="application/rss+xml" title="HOME" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">HOME</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li><a href="/archives">Archive</a></li><li><a href="https://github.com/flyingtime">Github</a></li><li><a href="/about/">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/hexo.png" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>[翻译]MySql Connector NET for .NET Core 1.0</h1><p class="post-meta">Posted on 10月 27 2016 · <a href="/tags/c/" class="tag post-meta">c#</a> · <a href="/tags/netcore/" class="tag post-meta">.netcore</a> · <a href="/tags/mysql/" class="tag post-meta">mysql</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><blockquote>
+<p>.Net Core发展迅猛，最近Entity Framework Core支持Mysql数据库了，现在可以在windows、osx、linux上使用.netcore连接mysql数据库了，英文原文地址:<a href="http://insidemysql.com/mysql-connector-net-for-net-core-1-0/" target="_blank" rel="external">MySql Connector NET for .NET Core 1.0</a></p>
+</blockquote>
+<h2 id="翻译"><a href="#翻译" class="headerlink" title="翻译"></a>翻译</h2><ul>
+<li><strong>.NET Core 和 MySQL Connector NET</strong><br>  这是激动人心的时刻！最近微软发布了.NET Core 1.0，它是一个跨平台实现.NET Framework的实现。.NET Core运行在Windows，Mac OS和Linux上并且是完全开源的！<br>  我们希望使用MySQL Connector NET的用户能够使用.NET Core，所以在过去几个月中我们努力工作，使我们的程序能够完全兼容.NET Core。由于.NET Core并没有完全取代传统的.NET Framework，我们将继续确保我们的程序与这两个框架兼容。<br>  随着这些令人兴奋的变化，我们将继续支持Entity Framwork 7.0和Entity Framework 1.0，包括最新的发布版。<br>  在本文中，我将解释如何安装和设置.NET Core以及如何创建一个简单的示例，连接Mysql数据库取回数据并显示到屏幕上。</li>
+<li><strong>Setup</strong><br>  .Net Core这个新框架的进一步信息，API，etc等，可以在这个网站中找到：<a href="https://www.microsoft.com/net/core" target="_blank" rel="external">https://www.microsoft.com/net/core</a>。</li>
+<li><strong>工具</strong><br>  SDK和DOTNET CLI适用于所有支持的平台（见网站就知道支持特定平台的列表）。Visual Studio Code（可在<a href="https://code.visualstudio.com/" target="_blank" rel="external">https://code.visualstudio.com/</a>）是一个新的，完全开源的编辑器，可运行在Windows，Mac和Linux，提供了一个很好的GUI环境进行编辑，编译，甚至调试项目。当安装Visual Studio代码，请确保安装了C＃插件，这将允许编译和调试C＃项目。</li>
+<li><strong>在Windows上安装</strong><br>  安装指南请参考这个网址 <a href="https://www.microsoft.com/net/core#windows" target="_blank" rel="external">https://www.microsoft.com/net/core#windows</a>。<br>  你可以只安装.NET Core 1.0 SDK并且使用Visual Studio Code进行编辑、编译、调试。.NET Core 1.0 SDK的下地址为<a href="https://go.microsoft.com/fwlink/?LinkID=809122." target="_blank" rel="external">https://go.microsoft.com/fwlink/?LinkID=809122</a>。<br>  当然你也可以在Windows系统上选择Visual Studio 2015。如果你不想购买Visual Studio 2015, 你可以使用Visual Studio 2015 Community Edition版本，可以在这里找到<a href="https://go.microsoft.com/fwlink/?LinkId=691978" target="_blank" rel="external">https://go.microsoft.com/fwlink/?LinkId=691978</a>。<br>  要使用.NET Core项目，你必须确保你使用的是Visual Studio 2015 Update3。可以在这里找到<a href="https://go.microsoft.com/fwlink/?LinkId=691129" target="_blank" rel="external">https://go.microsoft.com/fwlink/?LinkId=691129</a>。此外，还有一个单独的下载提供一些在Visual Studio 2015使用的“工具”，可以在这里找到<a href="https://go.microsoft.com/fwlink/?LinkID=824849" target="_blank" rel="external">https://go.microsoft.com/fwlink/?LinkID=824849</a>。</li>
+<li><strong>在Linux上安装</strong><br>  .NET Core 1.0是兼容多版本Linux变种的。我将解释如何在Ubuntu (14.04或16.04,15.04不支持)或者Linux Mint 17上安装.NET Core 1.0。所使用的指南在这里<a href="https://www.microsoft.com/net/core#ubuntu" target="_blank" rel="external">https://www.microsoft.com/net/core#ubuntu</a>。<br>  同时也支持其他的Liunx发行版, 遵循从指导<a href="https://www.microsoft.com/net/core" target="_blank" rel="external">.NET Core website</a>。<ul>
+<li>添加dotnet的apt-get源<br>  首先我们要添加apt-get的源。</li>
+<li>Ubuntu 14.04/Linux Mint 17<pre><code class="shell">sudo sh -c &apos;echo &quot;deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/dotnet-release/ trusty main&quot; &gt; /etc/apt/sources.list.d/dotnetdev.list&apos;
+sudo apt-key adv --keyserver apt-mo.trafficmanager.net --recv-keys 417A0893
+sudo apt-get update
+</code></pre>
+</li>
+<li>Ubuntu 16.04<pre><code class="shell">sudo sh -c &apos;echo &quot;deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/dotnet-release/ xenial main&quot; &gt; /etc/apt/sources.list.d/dotnetdev.list&apos;
+sudo apt-key adv --keyserver apt-mo.trafficmanager.net --recv-keys 417A0893
+sudo apt-get update
+</code></pre>
+</li>
+<li>.NET Core SDK<br>  如果你以前安装过.NET Core的任何版本需要运行<a href="https://github.com/dotnet/cli/blob/rel/1.0.0/scripts/obtain/uninstall/dotnet-uninstall-debian-packages.sh" target="_blank" rel="external">该脚本</a>以删除旧版本。在继续安装之前务必删除旧的版本。<br>  使用apt-get安装.NET Core<pre><code class="shell">sudo apt-get install dotnet-dev-1.0.0-preview2-003121
+</code></pre>
+</li>
+</ul>
+</li>
+<li><strong>在Mac OS上安装</strong><br>  使用指南在这里<a href="https://www.microsoft.com/net/core#macos" target="_blank" rel="external">https://www.microsoft.com/net/core#macos</a><br>  必须要安装最新版本的OpenSSL，最简单的方式是使用Homebrew安装。请使用下面的指南安装Homebrew<a href="http://brew.sh/" target="_blank" rel="external">here</a><br>  安装完Homebrew，请使用下面的命令<pre><code class="shell">brew update
+brew install openssl
+brew link --force openssl
+</code></pre>
+<ul>
+<li>.NET Core SDK (Mac OS)<br>  请在这里下载安装文件<a href="https://go.microsoft.com/fwlink/?LinkID=809124" target="_blank" rel="external">https://go.microsoft.com/fwlink/?LinkID=809124</a></li>
+</ul>
+</li>
+<li><p><strong>例子</strong><br>  现在我们的SDK已经安装完毕，我们可以继续创建一个示例项目。你可以使用Visual Studio 2015 或 Visual Studio Code。<br>  .NET Core有两种不同项目：Library和Console程序。到目前为止.NET Core还不支持GUI样式的程序。这个例子我们将会建立一个console程序。<br>  如果你使用Visual Studio 2015，创建一个“Console Application (.NET Core)”的新项目, 出入工程名并点击“OK”按钮。<br>  <img src="/res/Select-Kind-of-project.png" alt=""><br>  如果你是使用dotnet CL和VS Code创建项目，打开命令提示行,为你的项目创建一个新的文件夹, 进入文件夹创建项目</p>
+<pre><code class="shell">mkdir MyProject
+cd MyProject
+dotnet new
+</code></pre>
+<p>  项目创建完成之后,需要使用“restore”命令下载相关联的程序集<br>  使用Visual Studio 2015在项目上单击右键，在弹出的菜单中选择“Restore Packages”<br>  使用dotnet cli/VS Code</p>
+<pre><code class="shell">dotnet restore
+</code></pre>
+<p>  restore完成之后，使用Visual Studio 2015编译项目或使用dotnet cli运行“build”命令</p>
+<pre><code class="shell">dotnet build
+</code></pre>
+<p>  最后，执行这个例子，在Visual Studio 2015上使用F5键或在cli中运行“run”命令</p>
+<pre><code class="shell">dotnet run
+</code></pre>
+<p>  现在你应该看到输出了“Hello World!”<br>  我们现在已经有了一个十分基础的程序。现在让我们添加一些代码和一个.NET Core依赖的MySQL Connector引用。我们将继续使用dotnet cli还有VS Code完成本文的其他部分。<br>  打开在Visual Studio代码的目录。我们将会看到两个文件，Program.cs中和project.json。<br>  project.json是我们项目的配置文件，包含项目的一些属性如名字，版本，作者。此外，我们设置构建和打包的选项，建立框架目标还有他们其他的设置如依赖关系。<br>  我们刚才创建的项目有一个“project.json”文件，它看起来是这个样子</p>
+<pre><code class="json">{
+  <span class="attr">"version"</span>: <span class="string">"1.0.0-*"</span>,
+  <span class="attr">"buildOptions"</span>: {
+    <span class="attr">"debugType"</span>: <span class="string">"portable"</span>,
+    <span class="attr">"emitEntryPoint"</span>: <span class="literal">true</span>
+  },
+  <span class="attr">"dependencies"</span>: {},
+  <span class="attr">"frameworks"</span>: {
+    <span class="attr">"netcoreapp1.0"</span>: {
+      <span class="attr">"dependencies"</span>: {
+        <span class="attr">"Microsoft.NETCore.App"</span>: {
+          <span class="attr">"type"</span>: <span class="string">"platform"</span>,
+          <span class="attr">"version"</span>: <span class="string">"1.0.0"</span>
+        }
+      },
+      <span class="attr">"imports"</span>: <span class="string">"dnxcore50"</span>
+    }
+  }
+}
+</code></pre>
+<p>  为了与Mysql Server建立连接，我们需要添加一个.NET Core版的MySQL Connector引用。我们将在Microsoft.NETCore.App依赖之后添加这个依赖。请注意，我们还需要添加一个不依赖于目标的生成依赖(在“dependencies”分区后面的空白处，”frameworks”分区的前面)。这就是你需要做的。</p>
+<pre><code class="json">{
+  <span class="attr">"version"</span>: <span class="string">"1.0.0-*"</span>,
+  <span class="attr">"buildOptions"</span>: {
+    <span class="attr">"debugType"</span>: <span class="string">"portable"</span>,
+    <span class="attr">"emitEntryPoint"</span>: <span class="literal">true</span>
+  },
+  <span class="attr">"dependencies"</span>: {},
+  <span class="attr">"frameworks"</span>: {
+    <span class="attr">"netcoreapp1.0"</span>: {
+      <span class="attr">"dependencies"</span>: {
+        <span class="attr">"Microsoft.NETCore.App"</span>: {
+          <span class="attr">"type"</span>: <span class="string">"platform"</span>,
+          <span class="attr">"version"</span>: <span class="string">"1.0.0"</span>
+        },
+        <span class="attr">"MySql.Data.Core"</span>: <span class="string">"7.0.4-IR-191"</span>        
+      },
+      <span class="attr">"imports"</span>: <span class="string">"dnxcore50"</span>
+    }
+  }
+}
+</code></pre>
+<p>  确保我们已经有一个创建MySQL服务器并且在运行，并配置了Sakila样例数据库。如果你需要新建数据库，sql脚本可以在<a href="https://dev.mysql.com/doc/index-other.html" target="_blank" rel="external">这里</a>找到。<br>  当我们改变了依赖关系，我们需要重新restore一下，这样.NET Core会下载NuGet包，这样我们就可以使用它。</p>
+<pre><code class="shell">dotnet restore
+</code></pre>
+<p>  现在打开program.cs源文件，在命名空间部分添加using MySql.Data.MySqlClient并且添加新建和打开连接的代码。</p>
+<pre><code class="c#">using System;
+using MySql.Data.MySqlClient;
+
+namespace ConsoleApplication
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            MySqlConnection connection = new MySqlConnection
+            {
+                ConnectionString = &quot;server=&lt;ServerAddress&gt;;user id=&lt;User&gt;;password=&lt;Password&gt;;persistsecurityinfo=True;port=&lt;Port&gt;;database=sakila&quot;
+            };
+            connection.Open();
+        }
+    }
+}
+</code></pre>
+<p>  现在让我们添加从“Sakila”数据库或者“Category”表信息的相关代码</p>
+<pre><code class="c#">using System;
+using MySql.Data.MySqlClient;
+
+namespace ConsoleApplication
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            MySqlConnection connection = new MySqlConnection
+            {
+                ConnectionString = &quot;server=localhost;user id=root;password=;persistsecurityinfo=True;port=3305;database=sakila&quot;
+            };
+            connection.Open();
+            MySqlCommand command = new MySqlCommand(&quot;SELECT * FROM sakila.category;&quot;, connection);
+
+            using (MySqlDataReader reader =  command.ExecuteReader())
+            {
+                System.Console.WriteLine(&quot;Category Id\t\tName\t\tLast Update&quot;);
+                while (reader.Read())
+                {
+                string row = $&quot;{reader[&quot;category_id&quot;]}\t\t{reader[&quot;name&quot;]}\t\t{reader[&quot;last_update&quot;]}&quot;;
+                System.Console.WriteLine(row);
+                }
+            }
+
+            connection.Close();
+
+            System.Console.ReadKey();            
+        }
+    }
+}
+</code></pre>
+<p>  这就是我们需要从服务器获取数据的简单例子的全部内容。让我们构建并运行这个例子(如果你还没有执行restore操作，那么首先需要restore)</p>
+<pre><code class="shell">dotnet restore
+dotnet build
+dotnet run
+</code></pre>
+<p>  输出的内容如下:</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Category Id</th>
+<th>Name</th>
+<th>Last Update</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Action</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Animation</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Children</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Classics</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Comedy</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Documentary</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Drama</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Family</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Foreign</td>
+<td>15/02/2006 04:46:27</td>
+</tr>
+</tbody>
+</table>
+<p>希望这简单的示例可以帮助你。虽然这篇文章是在Windows上的，但是命令行步骤和代码在Linux和Mac也是一样的。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>谢谢大家观看！有任何疑问或建议请发送邮件联系我：<a href="&#x6d;&#x61;&#x69;&#108;&#116;&#111;&#x3a;&#102;&#x6c;&#121;&#105;&#110;&#103;&#x74;&#105;&#x6d;&#101;&#105;&#99;&#101;&#x40;&#49;&#x36;&#51;&#46;&#x63;&#x6f;&#109;">&#102;&#x6c;&#121;&#105;&#110;&#103;&#x74;&#105;&#x6d;&#101;&#105;&#99;&#101;&#x40;&#49;&#x36;&#51;&#46;&#x63;&#x6f;&#109;</a>。</p>
+</article><ul class="pager blog-pager"><li class="next"><a href="/2016/10/27/Netcore-Native测试/" data-toggle="tooltip" data-placement="top" title=".Netcore Native测试">Next Post →</a></li></ul><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//flyingtime.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/flyingtime" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="/atom.xml" title="RSS"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-rss"></i></span></a></li><li><a href="mailto:flyingtimeice@gmail.com" title="Email me"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-envelope"></i></span></a></li></ul><p class="copyright text-muted">© Flyingtime • 2016 • <a href="mailto:undefined"></a>
+</p><p class="theme-by text-muted">Theme by
+<a href="https://github.com/twoyao/beautiful-hexo">beautiful-hexo</a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>
