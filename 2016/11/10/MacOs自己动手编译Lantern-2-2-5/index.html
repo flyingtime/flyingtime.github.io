@@ -1,0 +1,141 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Flyingtime"><link rel="icon" href="/hexo.png"><title>HOME</title><meta name="description"><link rel="alternate" type="application/rss+xml" title="HOME" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">HOME</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li><a href="/archives">Archive</a></li><li><a href="https://github.com/flyingtime">Github</a></li><li><a href="/about/">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/hexo.png" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>MacOs自己动手编译Lantern 2.2.5</h1><p class="post-meta">Posted on 11月 10 2016 · <a href="/tags/golang/" class="tag post-meta">golang</a> · <a href="/tags/lantern/" class="tag post-meta">lantern</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><blockquote>
+<p>Lantern（蓝灯）一直是我翻墙的好伙伴，可是自从升级到macOS Sierra(10.12.1)之后，Lantern就会出现闪退的现象；而升级Lantern的版本的话，每个月就只有800M的流量。。。不该升级啊，手贱了，痛定思痛，还是想办法解决吧。。。既然Lantern是开源的那我们就自己编译试试。</p>
+</blockquote>
+<h3 id="动手"><a href="#动手" class="headerlink" title="动手"></a>动手</h3><ol>
+<li><p>查看golang版本，当前go版本为1.7.3，如果不是最新版的话更新一下:</p>
+<pre><code class="shell">brew update
+brew install go
+</code></pre>
+</li>
+<li><p>下载Lantern:</p>
+<pre><code class="shell">git clone https://github.com/getlantern/lantern
+</code></pre>
+<p>Lantern比较大，我这里下载多次失败，那么git有没有断点续传的功能呢：</p>
+<pre><code class="shell">git fetch git@github.com:getlantern/lantern.git
+中途掉线后可以重复上面的命令
+git checkout FETCH_HEAD
+</code></pre>
+</li>
+<li><p>进入到Lantern目录并编译</p>
+<pre><code class="shell">cd lantern
+make package-darwin VERSION=&apos;2.2.5&apos;
+</code></pre>
+<p>运行时按照上面的提示安装所需要的库，同时因为go版本的原因，http.Transport的定义有变化，直接把出现错误的行注释掉即可。<br>lantern/src/github.com/getlantern/flashlight/proxied/proxied.go,391行:</p>
+<pre><code class="go"><span class="comment">// chained creates an http.RoundTripper. If rootCA is specified, the</span>
+<span class="comment">// RoundTripper will validate the server's certificate on TLS connections</span>
+<span class="comment">// against that RootCA. If persistent is specified, the RoundTripper will use</span>
+<span class="comment">// keepalive connections across requests.</span>
+<span class="function"><span class="keyword">func</span> <span class="title">chained</span><span class="params">(rootCA <span class="keyword">string</span>, persistent <span class="keyword">bool</span>)</span> <span class="params">(http.RoundTripper, error)</span></span> {
+ tr := &amp;http.Transport{
+     Dial: (&amp;net.Dialer{
+         Timeout:   <span class="number">60</span> * time.Second,
+         KeepAlive: <span class="number">30</span> * time.Second,
+     }).Dial,
+     TLSHandshakeTimeout: <span class="number">10</span> * time.Second,
+
+     <span class="comment">// This method is typically used for creating a one-off HTTP client</span>
+     <span class="comment">// that we don't want to keep around for future calls, making</span>
+     <span class="comment">// persistent connections a potential source of file descriptor</span>
+     <span class="comment">// leaks. Note the name of this variable is misleading -- it would</span>
+     <span class="comment">// be clearer to call it DisablePersistentConnections -- i.e. it has</span>
+     <span class="comment">// nothing to do with TCP keep alives along the lines of the KeepAlive</span>
+     <span class="comment">// variable in net.Dialer.</span>
+     DisableKeepAlives: !persistent,
+
+     TLSClientConfig: &amp;tls.Config{
+         <span class="comment">// Cache TLS sessions for faster connection</span>
+         ClientSessionCache: clientSessionCache,
+     },
+ }
+
+ <span class="comment">//if persistent {</span>
+ <span class="comment">//    tr.MaxIdleTime = 30 * time.Second</span>
+ <span class="comment">//    tr.EnforceMaxIdleTime()</span>
+ <span class="comment">//}</span>
+
+ <span class="keyword">if</span> rootCA != <span class="string">""</span> {
+     caCert, err := keyman.LoadCertificateFromPEMBytes([]<span class="keyword">byte</span>(rootCA))
+     <span class="keyword">if</span> err != <span class="literal">nil</span> {
+         <span class="keyword">return</span> <span class="literal">nil</span>, errors.Wrap(err).Op(<span class="string">"DecodeRootCA"</span>)
+     }
+     tr.TLSClientConfig.RootCAs = caCert.PoolContainingCert()
+ }
+
+ tr.Proxy = <span class="function"><span class="keyword">func</span><span class="params">(req *http.Request)</span> <span class="params">(*url.URL, error)</span></span> {
+     proxyAddr, ok := getProxyAddr()
+     <span class="keyword">if</span> !ok {
+         <span class="keyword">return</span> <span class="literal">nil</span>, errors.New(ErrChainedProxyUnavailable)
+     }
+     <span class="keyword">return</span> url.Parse(<span class="string">"http://"</span> + proxyAddr)
+ }
+
+ <span class="keyword">return</span> AsRoundTripper(<span class="function"><span class="keyword">func</span><span class="params">(req *http.Request)</span> <span class="params">(*http.Response, error)</span></span> {
+     op := ops.Begin(<span class="string">"chained"</span>).ProxyType(ops.ProxyChained).Request(req)
+     <span class="keyword">defer</span> op.End()
+     resp, err := tr.RoundTrip(req)
+     op.Response(resp)
+     <span class="keyword">return</span> resp, errors.Wrap(err)
+ }), <span class="literal">nil</span>
+}
+</code></pre>
+<p>lantern/src/github.com/getlantern/flashlight/client/reverseproxy.go,20行:</p>
+<pre><code class="go"><span class="comment">// newReverseProxy creates a reverse proxy that uses the client's balancer to</span>
+<span class="comment">// dial out.</span>
+<span class="function"><span class="keyword">func</span> <span class="params">(client *Client)</span> <span class="title">newReverseProxy</span><span class="params">()</span> *<span class="title">httputil</span>.<span class="title">ReverseProxy</span></span> {
+ transport := &amp;http.Transport{
+     TLSHandshakeTimeout: <span class="number">40</span> * time.Second,
+     <span class="comment">//MaxIdleTime:         30 * time.Second,</span>
+ }
+ <span class="comment">//transport.EnforceMaxIdleTime()</span>
+
+ <span class="comment">// <span class="doctag">TODO:</span> would be good to make this sensitive to QOS, which</span>
+ <span class="comment">// right now is only respected for HTTPS connections. The</span>
+ <span class="comment">// challenge is that ReverseProxy reuses connections for</span>
+ <span class="comment">// different requests, so we might have to configure different</span>
+ <span class="comment">// ReverseProxies for different QOS's or something like that.</span>
+ transport.Dial = client.proxiedDialer(bal.Dial)
+
+ onRequest := bal.OnRequest
+ <span class="keyword">return</span> &amp;httputil.ReverseProxy{
+     <span class="comment">// We need to set the authentication tokens for all servers that we might</span>
+     <span class="comment">// connect to because we don't know which one the dialer will actually</span>
+     <span class="comment">// pick. We also need to strip out X-Forwarded-For that reverseproxy adds</span>
+     <span class="comment">// because it confuses the upstream servers with the additional 127.0.0.1</span>
+     <span class="comment">// field when upstream servers are trying to determine the client IP.</span>
+     <span class="comment">// We need to add also the X-Lantern-Device-Id field.</span>
+     Director: <span class="function"><span class="keyword">func</span><span class="params">(req *http.Request)</span></span> {
+         <span class="comment">// Add back the Host header which was stripped by the ReverseProxy. This</span>
+         <span class="comment">// is needed for sites that do virtual hosting.</span>
+         req.Header.Set(<span class="string">"Host"</span>, req.Host)
+         onRequest(req)
+     },
+     Transport: &amp;bandwidthTrackingRoundTripper{
+         &amp;errorRewritingRoundTripper{
+             &amp;noForwardedForRoundTripper{withDumpHeaders(<span class="literal">false</span>, transport)},
+         },
+     },
+     <span class="comment">// Set a FlushInterval to prevent overly aggressive buffering of</span>
+     <span class="comment">// responses, which helps keep memory usage down</span>
+     FlushInterval: <span class="number">250</span> * time.Millisecond,
+     ErrorLog:      log.AsStdLogger(),
+ }
+}
+</code></pre>
+<p>在编译时还会出现一个错误：<strong>“The specified item could not be found in the keychain.”</strong>，我们不管它，我们又不发布这个程序只是自己用而已，这个错误可以直接略过，这样在我们的目录里面生成Lantern.app，直接拖到Applications目录即可。</p>
+</li>
+</ol>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>测试了一下，不会出现闪退的现象，而且依旧可以翻墙。<br><img src="/res/lantern2.2.5.png" alt=""><br><img src="/res/youtube.png" alt=""><br>通过这次实践，让我更加清楚的了解到什么叫<strong>自己动手丰衣足食</strong>了。</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="https://github.com/getlantern/lantern" target="_blank" rel="external">https://github.com/getlantern/lantern</a><br><a href="https://github.com/getlantern/lantern/blob/devel/README-release.md" target="_blank" rel="external">https://github.com/getlantern/lantern/blob/devel/README-release.md</a></p>
+</article><ul class="pager blog-pager"><li class="next"><a href="/2016/11/03/C-Interface的继承/" data-toggle="tooltip" data-placement="top" title="C# Interface的继承">Next Post →</a></li></ul><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//flyingtime.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/flyingtime" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="/atom.xml" title="RSS"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-rss"></i></span></a></li><li><a href="mailto:flyingtimeice@gmail.com" title="Email me"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-envelope"></i></span></a></li></ul><p class="copyright text-muted">© Flyingtime • 2016 • <a href="mailto:undefined"></a>
+</p><p class="theme-by text-muted">Theme by
+<a href="https://github.com/twoyao/beautiful-hexo">beautiful-hexo</a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>
