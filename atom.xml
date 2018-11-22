@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://flyingtime.github.io/"/>
-  <updated>2016-11-10T06:28:24.000Z</updated>
+  <updated>2018-11-22T13:16:50.000Z</updated>
   <id>http://flyingtime.github.io/</id>
   
   <author>
@@ -14,6 +14,163 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>为IOS和Android的真机和模拟器编译Luajit库</title>
+    <link href="http://flyingtime.github.io/2018/11/22/%E4%B8%BAIOS%E5%92%8CAndroid%E7%9A%84%E7%9C%9F%E6%9C%BA%E5%92%8C%E6%A8%A1%E6%8B%9F%E5%99%A8%E7%BC%96%E8%AF%91Luajit%E5%BA%93/"/>
+    <id>http://flyingtime.github.io/2018/11/22/为IOS和Android的真机和模拟器编译Luajit库/</id>
+    <published>2018-11-22T13:16:08.000Z</published>
+    <updated>2018-11-22T13:16:50.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>转自:<a href="http://yanfeng.life/2018/07/19/luajit-build-for-mobile/" target="_blank" rel="external">http://yanfeng.life/2018/07/19/luajit-build-for-mobile/</a></p>
+<blockquote>
+<p>编译 Luajit 库，的确是一个挑战。因为官网的教程，在当前版本的 Xcode 和 NDK 环境中，已经不适用了。以前只是编译了适用于真机的 Luajit 库。最近在尝试编译模拟器 Luajit 库，就顺便梳理了下 Luajit 库的编译经验，供以后查阅。网上的讨论也是有一些，但是相当一部分都已经过时。或许等你看到这篇文章的时候，可能也只是能获得一些可能的经验来解决自己的编译问题。所以说，了解一些基本的编译知识，能勉强看懂 Luajit 的 make 文件，还是很有必要的。本篇是关于 Luajit 静态库的，如果你想找的是如何编译适用于移动端的 Luajit 字节码，可以直接看 <a href="http://yanfeng.life/2018/07/11/luajit-build-latest/" target="_blank" rel="external">【最新】LuaJIT 32/64 位字节码，从编译到使用全纪录</a>。</p>
+</blockquote>
+<h1 id="编译环境"><a href="#编译环境" class="headerlink" title="编译环境"></a>编译环境</h1><p>等你试着自己交叉编译 Luajit 库时，就会明白环境的影响到底有多大。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">macOS 10.13.4</div><div class="line">Xcode 9.4.1</div><div class="line">Android Studio 3.1.3</div><div class="line">先约定下基本的路径信息,供下文使用</div><div class="line">├── LuaJIT-2.1.0-beta3</div><div class="line">├── build-android.sh</div><div class="line">├── build-ios.sh</div><div class="line">├── lib</div><div class="line">│   ├── android</div><div class="line">│   │   ├── arm64-v8a</div><div class="line">│   │   ├── armeabi</div><div class="line">│   │   ├── armeabi-v7a</div><div class="line">│   │   └── x86</div><div class="line">│   └── ios</div><div class="line">│       └── libluajit2.1.0-beta.3.a</div><div class="line">``` </div><div class="line"># 编译适用于 iOS 的 Luajit 库，可能会遇到的问题</div><div class="line">## 编译前的准备</div><div class="line">需要先把 Luajit 源码的 lj_arch.h 547 行，从</div><div class="line">``` c</div><div class="line">#if LJ_TARGET_CONSOLE || (LJ_TARGET_IOS &amp;&amp; __IPHONE_OS_VERSION_MIN_REQUIRED &gt;= __IPHONE_8_0)</div><div class="line">#define LJ_NO_SYSTEM        1</div><div class="line">#endif</div><div class="line">``` </div><div class="line">改为：</div><div class="line">``` c</div><div class="line">#define LJ_NO_SYSTEM        1</div><div class="line">``` </div><div class="line">否则会触发错误:</div><div class="line">``` </div><div class="line">./lib_os.c:52:14: error: &apos;system&apos; is unavailable: not available on iOS</div><div class="line">`</div></pre></td></tr></table></figure></p>
+<p>问题的原因大致是，此处的判断，已经在最新的 Xcode 极其编译环境中，无法争取工作。对此问题的根源感兴趣的童鞋，请自行阅读 Luajit 的 make 文件。</p>
+<p><strong>注意</strong>：编译 Android 或其他平台库时，不需要修改此处源码。</p>
+<h2 id="完整的-iOS-编译命令：-build-ios-sh"><a href="#完整的-iOS-编译命令：-build-ios-sh" class="headerlink" title="完整的 iOS 编译命令： build-ios.sh"></a>完整的 iOS 编译命令： build-ios.sh</h2><p>建议最好以 sh 文件的方式，直接执行，在命令行输入，可能会触发诡异的未知问题。其中一个很关键的原因是： 在复制粘贴指令时，部分文本编辑器（比如 mac 上的备忘录）会混入特殊字符，导致编译指令运行失败。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div></pre></td><td class="code"><pre><div class="line">#!/bin/bash</div><div class="line"></div><div class="line"># LuaJIT 的源码路径</div><div class="line">LUAJIT=./LuaJIT-2.1.0-beta3</div><div class="line"></div><div class="line">XCODEPATH=`xcode-select -print-path`</div><div class="line">DEVDIR=$XCODEPATH/Platforms</div><div class="line">IOSVER=iPhoneOS.sdk</div><div class="line">SIMVER=iPhoneSimulator.sdk</div><div class="line"></div><div class="line"># 库的最总名称</div><div class="line">LIBNAME=libluajit2.1.0-beta.3.a</div><div class="line"></div><div class="line"># iOS 最低兼容版本,最好与需要嵌入 LuaJIT 的 App 的最低兼容设置保持一致.</div><div class="line">MINVERSION=9.0</div><div class="line"></div><div class="line">IOSDIR=$DEVDIR/iPhoneOS.platform/Developer</div><div class="line">SIMDIR=$DEVDIR/iPhoneSimulator.platform/Developer</div><div class="line"></div><div class="line"># xctoolchain 可以使用 xcode-select --install 命令安装.</div><div class="line"># xctoolchain 和模拟器中, 目前已不包含 gcc 等命令,可以从系统其它位置复制到 $IOSBIN 目录.</div><div class="line"># 命令的具体路径,可以执行 xcodebuild -find gcc 获得.</div><div class="line">IOSBIN=$XCODEPATH/Toolchains/XcodeDefault.xctoolchain/usr/bin/</div><div class="line">SIMBIN=$SIMDIR/usr/bin/</div><div class="line"></div><div class="line">BUILD_DIR=$LUAJIT/build</div><div class="line"> </div><div class="line">rm -rf $BUILD_DIR</div><div class="line">mkdir -p $BUILD_DIR</div><div class="line">rm *.a 1&gt;/dev/null 2&gt;/dev/null</div><div class="line"> </div><div class="line">echo =================================================</div><div class="line">echo ARMV7 Architecture</div><div class="line">ISDKF=&quot;-arch armv7 -isysroot $IOSDIR/SDKs/$IOSVER -miphoneos-version-min=$MINVERSION&quot;</div><div class="line">make -j -C $LUAJIT HOST_CC=&quot;gcc -m32 &quot; CROSS=$IOSBIN TARGET_FLAGS=&quot;$ISDKF&quot; TARGET=armv7 TARGET_SYS=iOS clean</div><div class="line">make -j -C $LUAJIT HOST_CC=&quot;gcc -m32 &quot; CROSS=$IOSBIN TARGET_FLAGS=&quot;$ISDKF&quot; TARGET=armv7 TARGET_SYS=iOS </div><div class="line">mv $LUAJIT/src/libluajit.a $BUILD_DIR/libluajitA7.a</div><div class="line"> </div><div class="line">echo =================================================</div><div class="line">echo ARM64 Architecture</div><div class="line">ISDKF=&quot;-arch arm64 -isysroot $IOSDIR/SDKs/$IOSVER -miphoneos-version-min=$MINVERSION&quot;</div><div class="line">make -j -C $LUAJIT HOST_CC=&quot;gcc &quot; CROSS=$IOSBIN TARGET_FLAGS=&quot;$ISDKF&quot; TARGET=arm64 TARGET_SYS=iOS clean</div><div class="line">make -j -C $LUAJIT HOST_CC=&quot;gcc &quot; CROSS=$IOSBIN TARGET_FLAGS=&quot;$ISDKF&quot; TARGET=arm64 TARGET_SYS=iOS </div><div class="line">mv $LUAJIT/src/libluajit.a $BUILD_DIR/libluajit64bit.a</div><div class="line"> </div><div class="line">echo =================================================</div><div class="line">echo IOS Simulator Architecture</div><div class="line">ISDKF=&quot;-arch x86_64 -isysroot $SIMDIR/SDKs/$SIMVER -miphoneos-version-min=$MINVERSION&quot;</div><div class="line">make -j -C $LUAJIT HOST_CFLAGS=&quot;-arch x86_64&quot; HOST_LDFLAGS=&quot;-arch x86_64&quot; TARGET_SYS=iOS TARGET=x86_64 clean</div><div class="line">make -j -C $LUAJIT HOST_CFLAGS=&quot;-arch x86_64&quot; HOST_LDFLAGS=&quot;-arch x86_64&quot; TARGET_SYS=iOS TARGET=x86_64 amalg CROSS=$SIMBIN TARGET_FLAGS=&quot;$ISDKF&quot;</div><div class="line"> </div><div class="line"> </div><div class="line">mv $LUAJIT/src/libluajit.a $BUILD_DIR/libluajitx86_64.a</div><div class="line"> </div><div class="line">libtool -o $BUILD_DIR/$LIBNAME $BUILD_DIR/*.a 2&gt; /dev/null</div><div class="line"></div><div class="line">mkdir -p $BUILD_DIR/Headers</div><div class="line">cp $LUAJIT/src/lua.h $BUILD_DIR/Headers</div><div class="line">cp $LUAJIT/src/lauxlib.h $BUILD_DIR/Headers</div><div class="line">cp $LUAJIT/src/lualib.h $BUILD_DIR/Headers</div><div class="line">cp $LUAJIT/src/luajit.h $BUILD_DIR/Headers</div><div class="line">cp $LUAJIT/src/lua.hpp $BUILD_DIR/Headers</div><div class="line">cp $LUAJIT/src/luaconf.h $BUILD_DIR/Headers</div><div class="line"> </div><div class="line">mv $BUILD_DIR/$LIBNAME ./lib/ios</div><div class="line">rm -rf $BUILD_DIR</div><div class="line"></div><div class="line">cd $LUAJIT</div><div class="line">make clean</div><div class="line">cd ..</div><div class="line">``` </div><div class="line">编译脚本运行方法：</div></pre></td></tr></table></figure></p>
+<p>chmod a+x build-ios.sh<br>./build-ios.sh<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">其他可能遇到的问题</div><div class="line">/Applications/Xcode.app/Contents/Developer/Platforms/Toolchains/XcodeDefault.xctoolchain/usr/bin/gcc command not found</div><div class="line">1. 先安装 toolchains:</div></pre></td></tr></table></figure></p>
+<p>xcode-select –install<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">2. 找下缺失本机上对应命令的真实路径：</div></pre></td></tr></table></figure></p>
+<p>xcodebuild -find gcc</p>
+<pre><code>3. 如果能找到，就把命令复制到缺失命令的位置；如果本机找不到，就从网上搜下安装教程。
+
+## 针对模拟器的额外设置
+由于iphone5s以上虚拟机需要x86_64支持，luajit为了支持此模式需要在other linker flags中增加参数(注意，只需要对模拟器添加参数，针对ios不能添加，否则apple不会通过审核)：
+-pagezero_size 10000 -image_base 100000000
+网上类似的描述很多，也很准确，我想补充的是：最好只在 Debug 模式下的配置中增加上述特殊参数。
+
+另外，如果你已经在使用 Luajit 的字节码，请注意模拟器 Luajit 库，需要加载的是 32 位字节码。
+
+# 编译适用于 Android 的 Luajit 库，可能会遇到的问题
+## 完整的 Android 编译命令： build-android.sh
+``` shell
+#!/bin/bash
+
+# LuaJIT 的源码路径
+LUAJIT=./LuaJIT-2.1.0-beta3
+cd $LUAJIT
+
+#编译 android-x86
+make clean
+NDK=~/library/android/sdk/ndk-bundle
+NDKABI=17
+NDKTRIPLE=x86
+NDKVER=$NDK/toolchains/$NDKTRIPLE-4.9
+NDKP=$NDKVER/prebuilt/darwin-x86_64/bin/i686-linux-android-
+NDKF=&quot;-isystem $NDK/sysroot/usr/include/i686-linux-android -D__ANDROID_API__=$NDKABI -D_FILE_OFFSET_BITS=32&quot;
+NDK_SYSROOT_BUILD=$NDK/sysroot
+NDK_SYSROOT_LINK=$NDK/platforms/android-$NDKABI/arch-x86
+
+make HOST_CC=&quot;gcc-4.9 -m32&quot; CROSS=$NDKP TARGET_FLAGS=&quot;$NDKF&quot; TARGET_SYS=Linux TARGET_SHLDFLAGS=&quot;--sysroot $NDK_SYSROOT_LINK&quot;  TARGET_LDFLAGS=&quot;--sysroot $NDK_SYSROOT_LINK&quot; TARGET_CFLAGS=&quot;--sysroot $NDK_SYSROOT_BUILD&quot;
+
+mv ./src/libluajit.a &quot;../lib/android/x86/libluajit.a&quot;
+
+#编译 android-armeabi
+make clean
+
+NDK=~/Library/Android/sdk/ndk-bundle
+NDKABI=17
+NDKTRIPLE=arm-linux-androideabi
+NDKVER=$NDK/toolchains/$NDKTRIPLE-4.9
+NDKP=$NDKVER/prebuilt/darwin-x86_64/bin/$NDKTRIPLE-
+NDKF=&quot;-isystem $NDK/sysroot/usr/include/$NDKTRIPLE -D__ANDROID_API__=$NDKABI -D_FILE_OFFSET_BITS=32&quot;
+NDK_SYSROOT_BUILD=$NDK/sysroot
+NDK_SYSROOT_LINK=$NDK/platforms/android-$NDKABI/arch-arm
+
+make HOST_CC=&quot;gcc-4.9 -m32&quot; CROSS=$NDKP TARGET_FLAGS=&quot;$NDKF&quot; TARGET_SYS=Linux TARGET_SHLDFLAGS=&quot;--sysroot $NDK_SYSROOT_LINK&quot;  TARGET_LDFLAGS=&quot;--sysroot $NDK_SYSROOT_LINK&quot; TARGET_CFLAGS=&quot;--sysroot $NDK_SYSROOT_BUILD&quot;
+
+mv ./src/libluajit.a ../lib/android/armeabi/libluajit.a
+
+#编译 android-armeabi-v7a
+make clean
+NDK=~/Library/Android/sdk/ndk-bundle
+NDKABI=17
+NDKTRIPLE=arm-linux-androideabi
+NDKVER=$NDK/toolchains/$NDKTRIPLE-4.9
+NDKP=$NDKVER/prebuilt/darwin-x86_64/bin/$NDKTRIPLE-
+NDKF=&quot;-isystem $NDK/sysroot/usr/include/$NDKTRIPLE -D__ANDROID_API__=$NDKABI -D_FILE_OFFSET_BITS=32&quot;
+NDK_SYSROOT_BUILD=$NDK/sysroot
+NDK_SYSROOT_LINK=$NDK/platforms/android-$NDKABI/arch-arm
+NDKARCH=&quot;-march=armv7-a -mfloat-abi=softfp -Wl,--fix-cortex-a8&quot;
+make HOST_CC=&quot;gcc-4.9 -m32&quot; CROSS=$NDKP TARGET_FLAGS=&quot;$NDKF $NDKARCH&quot; TARGET_SYS=Linux TARGET_SHLDFLAGS=&quot;--sysroot $NDK_SYSROOT_LINK&quot;  TARGET_LDFLAGS=&quot;--sysroot $NDK_SYSROOT_LINK&quot; TARGET_CFLAGS=&quot;--sysroot $NDK_SYSROOT_BUILD&quot;
+mv ./src/libluajit.a ../lib/android/armeabi-v7a/libluajit.a
+
+#编译 android-arm64-v8a
+make clean
+
+NDK=~/Library/Android/sdk/ndk-bundle
+NDKABI=21
+NDKTRIPLE=aarch64-linux-android
+NDKVER=$NDK/toolchains/$NDKTRIPLE-4.9
+NDKP=$NDKVER/prebuilt/darwin-x86_64/bin/$NDKTRIPLE-
+NDKF=&quot;-isystem $NDK/sysroot/usr/include/$NDKTRIPLE -D__ANDROID_API__=$NDKABI&quot;
+NDK_SYSROOT_BUILD=$NDK/sysroot
+NDK_SYSROOT_LINK=$NDK/platforms/android-$NDKABI/arch-arm64
+
+make HOST_CC=&quot;gcc-4.9&quot; CROSS=$NDKP TARGET_FLAGS=&quot;$NDKF&quot; TARGET_SYS=Linux TARGET_SHLDFLAGS=&quot;--sysroot $NDK_SYSROOT_LINK&quot;  TARGET_LDFLAGS=&quot;--sysroot $NDK_SYSROOT_LINK&quot; TARGET_CFLAGS=&quot;--sysroot $NDK_SYSROOT_BUILD&quot;
+
+mv ./src/libluajit.a ../lib/android/arm64-v8a/libluajit.a
+
+make clean
+</code></pre><p>注意：此处共编译了 arm64-v8a，armeabi-v7a，armeabi，x86 四种CPU架构的库。其中 arm64-v8a 并没有使用，因为它会引起诡异的兼容适配问题。初步怀疑和不同厂商魔改 ROM 实现有关。期待看到小伙伴们的进一步深入解读~</p>
+<h1 id="参考文章："><a href="#参考文章：" class="headerlink" title="参考文章："></a>参考文章：</h1><p><a href="https://github.com/rampantpixels/lua_lib/blob/master/lua/luajit/build-ios.sh" target="_blank" rel="external">https://github.com/rampantpixels/lua_lib/blob/master/lua/luajit/build-ios.sh</a></p>
+<p><a href="https://github.com/cailei/luajit/blob/master/build-luajit-ios.sh" target="_blank" rel="external">https://github.com/cailei/luajit/blob/master/build-luajit-ios.sh</a></p>
+<p><a href="https://blog.csdn.net/dragoncheng/article/details/43482109" target="_blank" rel="external">https://blog.csdn.net/dragoncheng/article/details/43482109</a></p>
+<p><a href="https://www.cnblogs.com/HemJohn/p/5429041.html" target="_blank" rel="external">https://www.cnblogs.com/HemJohn/p/5429041.html</a></p>
+<p><a href="https://www.jianshu.com/p/308d7be8b8df" target="_blank" rel="external">https://www.jianshu.com/p/308d7be8b8df</a></p>
+<p><a href="https://stackoverflow.com/a/12228575" target="_blank" rel="external">https://stackoverflow.com/a/12228575</a></p>
+<p><a href="http://www.codexiu.cn/android/blog/14563/" target="_blank" rel="external">http://www.codexiu.cn/android/blog/14563/</a></p>
+<p><a href="https://github.com/twilio/twilio-boost-build/issues/1" target="_blank" rel="external">https://github.com/twilio/twilio-boost-build/issues/1</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;转自:&lt;a href=&quot;http://yanfeng.life/2018/07/19/luajit-build-for-mobile/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;http://yanfeng.life/2018/07/19/luajit
+    
+    </summary>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Luajit位字节码，从编译到使用全纪录</title>
+    <link href="http://flyingtime.github.io/2018/11/22/Luajit%E4%BD%8D%E5%AD%97%E8%8A%82%E7%A0%81%EF%BC%8C%E4%BB%8E%E7%BC%96%E8%AF%91%E5%88%B0%E4%BD%BF%E7%94%A8%E5%85%A8%E7%BA%AA%E5%BD%95/"/>
+    <id>http://flyingtime.github.io/2018/11/22/Luajit位字节码，从编译到使用全纪录/</id>
+    <published>2018-11-22T13:07:04.000Z</published>
+    <updated>2018-11-22T13:09:30.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>转自:<a href="http://yanfeng.life/2018/07/11/luajit-build-latest/" target="_blank" rel="external">http://yanfeng.life/2018/07/11/luajit-build-latest/</a></p>
+<blockquote>
+<p>网上关于 LuaJIT 的讨论，已经显得有些陈旧。如果你对 LuaJIT 编译 Lua 源文件为具体的 32位或64位字节码，极其具体使用感兴趣的话，不妨快速读一下这篇文章。此文章针对尝试在 iOS 或 Android 上使用 LuaJIT 的小伙伴。限于篇幅，此处假定，你可以成功在 iOS/Android App 中集成了 LuaJIT,并且已经可以执行源码形式的 Lua 文件。<br>我忍不住在开头插一句： LuaJIT 编译后，只有约 600k,可能也就是一张图片的空间，但却可以让你的你App可以拥有一门完整的脚本语言的能力 – 真的很酷！为许多问题，提供了许多新的思路，特别是 App 地动态性和可配置型方面。</p>
+</blockquote>
+<h1 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h1><p>操作系统： macOS 10.13.4 【Linux 系统上，应该使用；Windows 系统上，仅供参考】</p>
+<p>LuaJIT 版本： LuaJIT-2.1.0-beta3【官网最新版】</p>
+<h1 id="目录结构预定义"><a href="#目录结构预定义" class="headerlink" title="目录结构预定义"></a>目录结构预定义</h1><p>为了便于下文指令的说明，此处简单约定下目录结构。实际使用时，按需设置和整理即可。</p>
+<p>tools：存放各种编译脚本和工具。<br>source：存放编译前的 Lua 源码。以后所有的 Lua 源码，都需要放在且只能放在此文件夹下。<br>output: 用于存放编译后的 Lua 字节码文件。</p>
+<h1 id="编译加密工具"><a href="#编译加密工具" class="headerlink" title="编译加密工具"></a>编译加密工具</h1><p>Lua 的加密工具，本质上就是 Lua 的解释器。此处使用的解释器源码是 LuaJIT。LuaJIT 执行效率最高，且编译出来的字节码无法逆向为 Lua 源码，更能保证源码安全性。LuaJIT 支持交叉编译，即可以在电脑上编译出 iOS 或 Android 手机上系统需要的字节码。如此，我们只需要编译一次 32 和 64 位的 LuaJIT 解释器各一个，备份存档，后续可直接使用。</p>
+<p>编译 LuaJIT 解释器，直接用官方的推荐指令即可。比较特殊的一点时，如果是想编译出 64 位 LuaJIT，需要加上参数 CFLAGS=-DLUAJIT_ENABLE_GC6。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"># cd 到 LuaJIT 源码目录</div><div class="line">cd tools/LuaJIT-2.1.0-beta3</div><div class="line"># 编译 32 位 LuaJIT 解释器</div><div class="line">make clean &amp;&amp; make &amp;&amp; cp src/luajit ../luajit-32 &amp;&amp; make clean</div><div class="line"># 编译 64 位 LuaJIT 解释器</div><div class="line">make clean &amp;&amp; make CFLAGS=-DLUAJIT_ENABLE_GC64 &amp;&amp; cp src/luajit ../luajit-64 &amp;&amp; make clean</div></pre></td></tr></table></figure></p>
+<p>注意：重新解压源码后，可能需要重新启动命令行/终端，来清除可能的系统缓存，才能正确 build 出想要的东西。</p>
+<h1 id="加密-Lua-源文件"><a href="#加密-Lua-源文件" class="headerlink" title="加密 Lua 源文件"></a>加密 Lua 源文件</h1><p>所谓的加密 Lua 源文件，其实就是把 Lua 源文件，编译为 LuaJIT 字节码。相对于 Luac ，LuaJIT 字节码执行效率更高，而且无法被直接逆向为对应的 Lua 源码。</p>
+<p>编译字节码，用的是 -b 命令，需要注意的是，一定要使用对应字节的 LuaJIT 解释器来编译，否则 iOS/Android App 中，可能无法加载。</p>
+<p>编译后的字节码文件的后缀，可以根据自己需要自定义。此处我使用的是 “.yan” 和 “.yan64”。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"># 编译32位字节码 ，适用于Android全部手机，部分 iOS 手机。</div><div class="line">./tools/luajit-32 -b ./source/main.lua ./output/main.yan</div><div class="line"># 编译64位字节码，仅用于部分 iOS 手机。</div><div class="line">./tools/luajit-64 -b ./source/main.lua ./output/main.yan64</div></pre></td></tr></table></figure></p>
+<p>注意： 敏感信息，不要直接以常量字符串的形式使用。</p>
+<h1 id="在-iOS-中，根据不同的-CPU，-加载不同的字节码。"><a href="#在-iOS-中，根据不同的-CPU，-加载不同的字节码。" class="headerlink" title="在 iOS 中，根据不同的 CPU， 加载不同的字节码。"></a>在 iOS 中，根据不同的 CPU， 加载不同的字节码。</h1><p>在 Android 手机上，一般只需要使用 32 位的 LuaJIT 字节码文件即可。iOS 上，情况比较复杂，从 iOS11 之后，iOS 要求相对的库必须有64位版本。也就意味着，如果 App 想兼容 iPhone5s 以前的 32位CPU的设备的话，就必须在项目中同时放置32位和64位的LuaJIT静态库。关于适用于手机端的 LuaJIT 静态库的编译问题，暂不进一步展开。此处只讨论，如何在 iOS 中，动态根据需要准确加载对应的 32 或 64 位的 LuaJIT 字节码文件。</p>
+<p>基于上文的讨论，此处给出一个简单的策略：</p>
+<p>Lua 源文件，同时编译生成32位和64位字节码的文件。<br>编译后的字节码文件，仅文件后缀不同，文件路径的其他部分保证是完全一致的。如 main.yan 和 main.yan64 是由 main.lua编译得到。<br>在 iOS App 运行时，动态根据当前真正运行的是 32 还是 64 位的 LuaJIT 解释器，来选择对应的字节码文件后缀即可。<br>分享一个 swift 版的实现：<br><figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">func</span> <span class="title">luaFileSuffix</span><span class="params">()</span></span> -&gt; <span class="type">String</span>&#123;</div><div class="line">    #<span class="keyword">if</span> (arch(i386) || arch(arm))</div><div class="line">    <span class="keyword">return</span> <span class="string">".yan"</span></div><div class="line">    #<span class="keyword">else</span></div><div class="line">    <span class="keyword">return</span> <span class="string">".yan64"</span></div><div class="line">    #endif</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h1 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h1><p><a href="https://stackoverflow.com/questions/18861046/how-to-determine-if-compiling-for-64-bit-ios-in-xcode" target="_blank" rel="external">How to determine if compiling for 64-bit iOS in Xcode</a></p>
+<p><a href="http://luajit.org/running.html" target="_blank" rel="external">Running LuaJIT</a></p>
+<p><a href="http://luajit.org/running.html" target="_blank" rel="external">Cross-compiling LuaJIT 部分很值得读</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;转自:&lt;a href=&quot;http://yanfeng.life/2018/07/11/luajit-build-latest/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;http://yanfeng.life/2018/07/11/luajit-bui
+    
+    </summary>
+    
+    
+  </entry>
   
   <entry>
     <title>MacOs自己动手编译Lantern 2.2.5</title>
@@ -481,7 +638,7 @@ dotnet run
 </tbody>
 </table>
 <p>希望这简单的示例可以帮助你。虽然这篇文章是在Windows上的，但是命令行步骤和代码在Linux和Mac也是一样的。</p>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>谢谢大家观看！有任何疑问或建议请发送邮件联系我：<a href="&#109;&#97;&#105;&#x6c;&#x74;&#111;&#x3a;&#x66;&#x6c;&#x79;&#105;&#110;&#103;&#x74;&#105;&#x6d;&#101;&#x69;&#x63;&#x65;&#64;&#49;&#54;&#x33;&#x2e;&#x63;&#x6f;&#x6d;">&#x66;&#x6c;&#x79;&#105;&#110;&#103;&#x74;&#105;&#x6d;&#101;&#x69;&#x63;&#x65;&#64;&#49;&#54;&#x33;&#x2e;&#x63;&#x6f;&#x6d;</a>。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>谢谢大家观看！有任何疑问或建议请发送邮件联系我：<a href="&#x6d;&#97;&#x69;&#108;&#x74;&#111;&#x3a;&#x66;&#108;&#121;&#x69;&#x6e;&#x67;&#x74;&#105;&#109;&#101;&#105;&#99;&#x65;&#x40;&#x31;&#x36;&#x33;&#x2e;&#99;&#x6f;&#x6d;">&#x66;&#108;&#121;&#x69;&#x6e;&#x67;&#x74;&#105;&#109;&#101;&#105;&#99;&#x65;&#x40;&#x31;&#x36;&#x33;&#x2e;&#99;&#x6f;&#x6d;</a>。</p>
 ]]></content>
     
     <summary type="html">
